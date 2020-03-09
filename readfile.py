@@ -1,6 +1,3 @@
-import random
-import sys
-
 with open('Call_7_Vehicle_3.txt', encoding="utf8", errors='ignore') as f:
     f.readline()
 
@@ -84,7 +81,7 @@ with open('Call_7_Vehicle_3.txt', encoding="utf8", errors='ignore') as f:
 
 
 def printVars():
-    #print variabler
+    #print variables
     print(f"num nodes: {num_nodes}\n")
     print(f"num vehicles: {num_vehicles}\n")
     print(f"vehicle start: {vehicle_start}\n")
@@ -94,73 +91,3 @@ def printVars():
     print(f"travel time and cost: {travel_times_and_cost}\n")
     print(f"node time and cost: {node_time_and_cost}\n")
 
-#printVars()
-
-def gen_random_solution():
-    solution = []
-    num_vehicles_left = num_vehicles 
-    num_iterations = (num_calls * 2) + num_vehicles
-    chance_of_changing_car = (num_vehicles/num_calls) * 100
-    finished_calls = [0] * num_calls
-    unfinished_calls = []
-    unfinished_calls.extend(range(1, num_calls+1))
-
-    while len(solution) < num_iterations:
-
-        change_car = False
-        if num_vehicles_left > 0:
-            change_car_check = random.randrange(0,101)
-            if change_car_check <= chance_of_changing_car:
-                change_car = True
-            else:
-                change_car = False
-
-        #if we want to change car we have to deliver all packages that has been picked up by that car first
-        if change_car:
-            undelivered_calls = []
-            for call_id, interaction_number in enumerate(finished_calls):
-                if interaction_number == 1: 
-                    undelivered_calls.append(call_id + 1) 
-  
-            while len(undelivered_calls) > 0:
-                next_elem = random.choice(undelivered_calls)
-                undelivered_calls.remove(next_elem)
-                solution.append(next_elem)
-
-                finished_calls[next_elem - 1] += 1
-                unfinished_calls.remove(next_elem)
-
-            num_vehicles_left -= 1
-            solution.append(0)
-
-#----------------------------------------------------
-
-        else:
-            
-            #if all nodes are placed but there are more unused cars:
-            if len(unfinished_calls) == 0: 
-                solution.append(0)
-                continue
-            
-            next_call = random.choice(unfinished_calls)
-
-            solution.append(next_call)
-
-            finished_calls[next_call - 1] += 1
-
-            if finished_calls[next_call - 1] == 2:
-                unfinished_calls.remove(next_call)
-
-
-
-    print("solution: ", solution)
-    print("finished calls: ", finished_calls)
-    print("unfisnishd calls: ", unfinished_calls)
-    return solution
-
-
-def check_feasibility(solution):
-    a=1
-
-
-gen_random_solution()
