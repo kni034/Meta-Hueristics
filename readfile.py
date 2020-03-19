@@ -43,7 +43,7 @@ def read(filename = 'Call_7_Vehicle_3.txt'):
         #list of calls each vehicle can do
         #vehicle_calls = {vehicle number:[call]}
         #call = (0)vehicle index, 
-        # (1)list of calls that can be transported using that vehicle
+        # (1,2,...)list of calls that can be transported using that vehicle
         vehicle_calls={}
         for _ in range(num_vehicles):
             line = f.readline().rstrip('\n')
@@ -88,8 +88,8 @@ def read(filename = 'Call_7_Vehicle_3.txt'):
 
         #time and cost of picking up and dropping packages in a call
         # node_time_and_cost = 
-        # {(vechicle number, call) : 
-        # ((0)origin node time, (1)origin node cost, (2)destination node time, (3)destination node cost)}
+        # {(vechicle number, call_id) : 
+        # [(0)origin node time, (1)origin node cost, (2)destination node time, (3)destination node cost]}
         global node_time_and_cost
         for _ in range(num_calls * num_vehicles):
             line = f.readline().rstrip('\n')
@@ -188,7 +188,7 @@ def check_feasibility(solution):
         #check for undelivered calls and change and reset active cars stats
         if call == 0:
             
-            if len(cars_storage) is not 0:
+            if len(cars_storage) != 0:
                 return False
 
             car_id += 1
@@ -218,13 +218,29 @@ def check_feasibility(solution):
                 return False
 
             #check if package exceeds cars capacity
-
             if car_weight >= vehicle_start[car_id][2]:
-                print("over papasitet for bil nr.", car_id, " på call: ", call)
+                print("over kapasitet for bil nr.", car_id, " på call: ", call)
                 return False
 
+
+            #gjør endringer her------------
             #calculate and check time usage
-            
+            if call in unfinished_calls:
+                if time > calls[call][6]: return False
+                if time < calls[call][5]:
+                    time = calls[call][5]
+
+
+            else:
+                if time > calls[call][8]: return False
+                if time < calls[call][7]:
+                    time = calls[call][7]
+
+
+
+                #calculate time   (tid fra node til node + tid for legg ned pakke)
+                time += travel_times_and_cost[(car_id, calls[call][1], calls[call][2])][0]
+                time += node_time_and_cost[(car_id, call)][2]
 
             
             #check if car can do call
