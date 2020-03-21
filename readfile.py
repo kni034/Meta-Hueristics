@@ -44,6 +44,7 @@ def read(filename = 'Call_7_Vehicle_3.txt'):
         #vehicle_calls = {vehicle number:[call]}
         #call = (0)vehicle index, 
         # (1,2,...)list of calls that can be transported using that vehicle
+        global vehicle_calls
         vehicle_calls={}
         for _ in range(num_vehicles):
             line = f.readline().rstrip('\n')
@@ -164,9 +165,7 @@ def gen_random_solution():
 
 
 def test():
-    car_id = 1
-    time = vehicle_start[car_id][1]
-    print(time)
+    print(vehicle_start)
 
 
 def check_feasibility(solution):
@@ -180,70 +179,110 @@ def check_feasibility(solution):
     last_node = vehicle_start[car_id][0]
 
 
-    if len(solution) is not (num_calls * 2) + num_vehicles:
-        print("solution har feil lengde")
+    if len(solution) != (num_calls * 2) + num_vehicles:
+        print("solution has wrong length: ", len(solution))
         return False
 
     for call in solution:
+
+        #if we are on the last car(dummy vehicle), we only have to
+        #check if all nodes are picked up and delivered 
+        if car_id == num_vehicles + 1: # +1 because car_id is 1.indexed
+            if call in cars_storage:
+                cars_storage.remove(call)
+                unfinished_calls.remove(call)
+            else:
+                cars_storage.append(call)
+            continue
+
         #check for undelivered calls and change and reset active cars stats
         if call == 0:
-            
+
             if len(cars_storage) != 0:
                 return False
 
             car_id += 1
+
+            if car_id == num_vehicles +1: continue
             car_weight = 0
             time = vehicle_start[car_id][1]
             last_node = vehicle_start[car_id][0]
 
         #number is not 0 so it is a call and not a change of car
         else:
+
+            #check if car can do call
+            can_do = False
+            for call_number in vehicle_calls[car_id]:
+                if call_number == call:
+                    can_do = True
+                    break
+            if not can_do:
+                print("car: ", car_id, " cant do call: ", call)
+                return False
+
             #check if a call is 'visited' more than 2 times
             try:
+                #if call is beein delivered:
                 if call in cars_storage:
                     cars_storage.remove(call)
                     unfinished_calls.remove(call)
+                    car_weight -= calls[call][3]
+
+                    #calc time from last node to current node
+                    time += travel_times_and_cost[(car_id, last_node, calls[call][2])][0]
                     
-                    car_weight += calls[call][3]
+                    #check if car is too late
+                    if time > calls[call][8]: 
+                        print("too late for delivery of call: ", call)
+                        return False
+                    #car has to wait when it arrives early to delivery
+                    if time < calls[call][7]:
+                        time = calls[call][7]
+
+                    #add time used to deliver call
+                    time += node_time_and_cost[(car_id, call)][2]
+
+                    last_node = calls[call][2]
 
 
-
+                #if call is beeing picked up
                 else:
                     cars_storage.append(call)
+                    car_weight += calls[call][3]
 
-                    car_weight -= calls[call][3]
+                    #calc time from last node to current node
+                    time += travel_times_and_cost[(car_id, last_node, calls[call][1])][0]
+
+                    #check if car is too late
+                    if time > calls[call][6]:
+                        print("too late for pickup of call: ", call)
+                        print("time: ", time, " pickup time: ", calls[call][6])
+                        return False
+                    #car has to wait when it arrives too early for pickup
+                    if time < calls[call][5]:
+                        time = calls[call][5]
+                    
+                    #add time used to pick up call
+                    time += node_time_and_cost[(car_id, call)][2]
+
+                    last_node = calls[call][0]
                 
             except:
-                print("fler enn 2 av samme call")
+                print("more than 2 of the same call: ", call)
+                print("cars storage: ", cars_storage)
+                print("unfinished calls: ", unfinished_calls)
                 return False
 
             #check if package exceeds cars capacity
             if car_weight >= vehicle_start[car_id][2]:
-                print("over kapasitet for bil nr.", car_id, " på call: ", call)
+                print("over capacity for car nr.", car_id, " from call: ", call)
                 return False
-
-
-            #gjør endringer her------------
-            #calculate and check time usage
-            if call in unfinished_calls:
-                if time > calls[call][6]: return False
-                if time < calls[call][5]:
-                    time = calls[call][5]
-
-
-            else:
-                if time > calls[call][8]: return False
-                if time < calls[call][7]:
-                    time = calls[call][7]
-
-
-
-                #calculate time   (tid fra node til node + tid for legg ned pakke)
-                time += travel_times_and_cost[(car_id, calls[call][1], calls[call][2])][0]
-                time += node_time_and_cost[(car_id, call)][2]
-
-            
-            #check if car can do call
+    
+    #check that all calls are handled
+    if len(unfinished_calls) != 0:
+        print("there are unfinished calls: ", unfinished_calls)
+        return False
 
     return True
             
