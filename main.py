@@ -8,14 +8,6 @@ e = [1, 1, 0, 7, 7, 0, 2, 2, 0, 3, 4, 5, 6, 4, 5, 3, 6]
 
 readfile.read()
 
-#rand = readfile.gen_random_solution()
-#print(rand)
-not_done = True
-rand = []
-while not_done:
-    rand = readfile.gen_random_solution()
-    if readfile.check_feasibility(rand):
-        break
+score = readfile.objective_function(a)
 
-
-print(rand)
+print(score)

@@ -292,19 +292,15 @@ def objective_function(solution):
     visited_nodes = []
     score = 0
     car_id = 1
-    last_node = 
+    last_node = vehicle_start[car_id][0]
 
 
     for call in solution:
 
-        #calculating for dummy vehicle
-        if car_id == num_vehicles + 1:
-            #cost of not transporting--------------------
-
         #call = 0 means change of car
         if call == 0:
             car_id += 1
-
+            last_node = vehicle_start[car_id][0]
 
         #visiting a node, not changing car
         else:
@@ -313,7 +309,33 @@ def objective_function(solution):
             if call not in visited_nodes:
                 visited_nodes.append(call)
 
+                #not dummy vehicle
+                if car_id != num_vehicles +1:
+
+                    score += travel_times_and_cost[(car_id, last_node, calls[call][2])][1]
+
+                    score += node_time_and_cost[(car_id, call)][1]
+
+                last_node = calls[call][1]
+                    
+
 
             #delivery
             else:
                 
+                #if dummy vehicle, score += cost of not transporting
+                if car_id == num_vehicles +1:
+
+                    score += calls[call][4]
+
+                #if not dummy vehicle, score += cost from last node to this node and 
+                #score += cost of delivery
+                else:
+                    score += travel_times_and_cost[(car_id, last_node, calls[call][2])][1]
+
+                    score += node_time_and_cost[(car_id, call)][3]
+                
+                last_node = calls[call][2]
+    
+    
+    return score    
