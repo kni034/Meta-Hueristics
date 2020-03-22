@@ -79,6 +79,7 @@ def read(filename = 'Call_7_Vehicle_3.txt'):
             line = f.readline().rstrip('\n')
             temp = line.split(",")
             temp = list(map(int, temp))
+
             first_elem = temp.pop(0)
             secound_elem = temp.pop(0)
             third_elem = temp.pop(0)
@@ -285,4 +286,34 @@ def check_feasibility(solution):
         return False
 
     return True
-            
+
+def objective_function(solution):
+    
+    visited_nodes = []
+    score = 0
+    car_id = 1
+    last_node = 
+
+
+    for call in solution:
+
+        #calculating for dummy vehicle
+        if car_id == num_vehicles + 1:
+            #cost of not transporting--------------------
+
+        #call = 0 means change of car
+        if call == 0:
+            car_id += 1
+
+
+        #visiting a node, not changing car
+        else:
+
+            #first time interacting with the call = pickup
+            if call not in visited_nodes:
+                visited_nodes.append(call)
+
+
+            #delivery
+            else:
+                
