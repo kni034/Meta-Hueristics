@@ -300,7 +300,8 @@ def objective_function(solution):
         #call = 0 means change of car
         if call == 0:
             car_id += 1
-            last_node = vehicle_start[car_id][0]
+            if car_id != num_vehicles +1:
+                last_node = vehicle_start[car_id][0]
 
         #visiting a node, not changing car
         else:
@@ -312,11 +313,11 @@ def objective_function(solution):
                 #not dummy vehicle
                 if car_id != num_vehicles +1:
 
-                    score += travel_times_and_cost[(car_id, last_node, calls[call][2])][1]
+                    score += travel_times_and_cost[(car_id, last_node, calls[call][1])][1]
 
                     score += node_time_and_cost[(car_id, call)][1]
 
-                last_node = calls[call][1]
+                    last_node = calls[call][1]
                     
 
 
@@ -335,7 +336,7 @@ def objective_function(solution):
 
                     score += node_time_and_cost[(car_id, call)][3]
                 
-                last_node = calls[call][2]
+                    last_node = calls[call][2]
     
     
     return score    
