@@ -8,6 +8,7 @@ calls = {}
 travel_times_and_cost = {}
 node_time_and_cost = {}
 
+
 def read(filename = 'Call_7_Vehicle_3.txt'):
 
     with open(filename, encoding="utf8", errors='ignore') as f:
@@ -181,7 +182,7 @@ def check_feasibility(solution):
 
 
     if len(solution) != (num_calls * 2) + num_vehicles:
-        print("solution has wrong length: ", len(solution))
+        ###print("solution has wrong length: ", len(solution))
         return False
 
     for call in solution:
@@ -219,7 +220,7 @@ def check_feasibility(solution):
                     can_do = True
                     break
             if not can_do:
-                print("car: ", car_id, " cant do call: ", call)
+                ###print("car: ", car_id, " cant do call: ", call)
                 return False
 
             #check if a call is 'visited' more than 2 times
@@ -235,7 +236,7 @@ def check_feasibility(solution):
                     
                     #check if car is too late
                     if time > calls[call][8]: 
-                        print("too late for delivery of call: ", call)
+                        ###print("too late for delivery of call: ", call)
                         return False
                     #car has to wait when it arrives early to delivery
                     if time < calls[call][7]:
@@ -257,8 +258,8 @@ def check_feasibility(solution):
 
                     #check if car is too late
                     if time > calls[call][6]:
-                        print("too late for pickup of call: ", call)
-                        print("time: ", time, " pickup time: ", calls[call][6])
+                        ###print("too late for pickup of call: ", call)
+                        ###print("time: ", time, " pickup time: ", calls[call][6])
                         return False
                     #car has to wait when it arrives too early for pickup
                     if time < calls[call][5]:
@@ -270,19 +271,19 @@ def check_feasibility(solution):
                     last_node = calls[call][0]
                 
             except:
-                print("more than 2 of the same call: ", call)
-                print("cars storage: ", cars_storage)
-                print("unfinished calls: ", unfinished_calls)
+                ###print("more than 2 of the same call: ", call)
+                ###print("cars storage: ", cars_storage)
+                ###print("unfinished calls: ", unfinished_calls)
                 return False
 
             #check if package exceeds cars capacity
             if car_weight >= vehicle_start[car_id][2]:
-                print("over capacity for car nr.", car_id, " from call: ", call)
+                ###print("over capacity for car nr.", car_id, " from call: ", call)
                 return False
     
     #check that all calls are handled
     if len(unfinished_calls) != 0:
-        print("there are unfinished calls: ", unfinished_calls)
+        ###print("there are unfinished calls: ", unfinished_calls)
         return False
 
     return True
