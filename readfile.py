@@ -190,12 +190,15 @@ def check_feasibility(solution):
         #if we are on the last car(dummy vehicle), we only have to
         #check if all nodes are picked up and delivered 
         if car_id == num_vehicles + 1: # +1 because car_id is 1.indexed
-            if call in cars_storage:
-                cars_storage.remove(call)
-                unfinished_calls.remove(call)
-            else:
-                cars_storage.append(call)
-            continue
+            try:
+                if call in cars_storage:
+                    cars_storage.remove(call)
+                    unfinished_calls.remove(call)
+                else:
+                    cars_storage.append(call)
+                continue
+            except:
+                return False
 
         #check for undelivered calls and change and reset active cars stats
         if call == 0:
