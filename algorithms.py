@@ -2,54 +2,86 @@ import readfile
 import random
 from collections import defaultdict
 
-def opt2(solution):
-    best = solution
-    call_to_change = random.choice(solution)
-    if call == 0:
-        call_to_change = random.choice(solution)
-
-    call_index = defaultdict(list)
-    for i, call in solution:
-        if call != 0:
-            call_index[call].append(i)
+def switch(solution, call1, call2):
+    temp = list(solution)
+    for i,elem in enumerate(temp):
+        if elem == call1:
+            temp[i]=call2
+        if elem == call2:
+            temp[i] = call1
     
-    for i in solution:
-        temp = list(solution)
-        temp[call_index[i][0]] =call_index[call_to_change][0]
-        temp[call_index[i][1]] = call_index[call_to_change][1]
+    return temp
+
+
+def opt2(solution):
+    best = list(solution)
+    ex1 = random.choice(solution)
+    while ex1 == 0: ex1 = random.choice(solution)
+
+    ex2 = random.choice(solution)
+    while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
+    
+    temp = switch(solution, ex1, ex2)
+
+    if readfile.check_feasibility(temp):
+        best = temp
+    return best
 
 
 
 def opt3(solution):
-    best = solution
-    for i, call1 in enumerate(solution):
-        for j,call2 in enumerate(solution):
-            for k,call3 in enumerate(solution):
-                temp = list(solution)
-                temp[i] = call3
-                temp[j] = call1
-                temp[k] = call2
+    best = list(solution)
+    ex1 = random.choice(solution)
+    while ex1 == 0: ex1 = random.choice(solution)
 
-                #print("i: ", i, " j: ",j ," k: ",k, " temp: ",temp, " best: ", best)
+    ex2 = random.choice(solution)
+    while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
 
-                if readfile.check_feasibility(temp):
-                    if readfile.objective_function(best) > readfile.objective_function(temp):
-                        best = temp
+    ex3 = random.choice(solution)
+    while ex3 == 0 or ex3 == ex2 or ex3 == ex1: ex3 = random.choice(solution)
+
+    order = [ex1,ex2,ex3]
+    random.shuffle(order)
+
+    temp = switch(solution, order[0], order[1])
+    temp = switch(temp, order[1], order[2])
+
+    if readfile.check_feasibility(temp):
+        best = temp
 
     return best
 
+def car_poss(solution, car_id):
+    current_car_num = 1
+    possitions = []
+    for i,elem in enumerate(solution):
+        if current_car_num == car_id:
+            possitions.append(i)
+        if elem == 0:
+            current_car_num += 1
+    
+    return possitions
+
 
 def insert1(solution):
-    best = solution
-    for i in solution:
-        for j in solution:
-            temp = list(solution)
-            elem = temp.pop(i)
-            temp.insert(j, elem)
+    best = list(solution)
+    ex1 = random.choice(solution)
+    while ex1 == 0: ex1 = random.choice(solution)
 
-            if readfile.check_feasibility(temp):
-                if readfile.objective_function(best) > readfile.objective_function(temp):
-                    best = temp
+    temp = list(solution)
+
+    temp = [x for x in temp if x != ex1]
+
+    car = random.choice(range(1, readfile.num_vehicles + 1))
+    cars_possition = car_poss(temp, car)
+
+    temp.insert(random.choice(cars_possition), ex1)
+    cars_possition = car_poss(temp, car)
+    temp.insert(random.choice(cars_possition), ex1)
+
+    if readfile.check_feasibility(temp):
+        best = temp
+
     return best
 
 
@@ -72,21 +104,24 @@ def local_search(solution):
     p1 = 0.33
     #p of using opt3
     p2 = 0.33
-    #p of using insert1
-    p3 = (1-p1 - p2)
     
-    best = solution
+    best = list(solution)
     for _ in range(10000):
         rand = random.random()
         if rand >= 0 and rand <= p1:
-            temp = opt2(solution)
-        if rand > p1 and rand <= p2:
-            temp = opt3(solution)
+            temp = opt2(best)
+        elif rand > p1 and rand <= p2 + p1:
+            temp = opt3(best)
         else:
-            temp = insert1(solution)
+            temp = insert1(best)
+
+        #print("temp: ", temp, " feasible?: ", readfile.check_feasibility(temp), " temp score: ", readfile.objective_function(temp), "best: ", best)
         
         if readfile.check_feasibility(temp):
             if readfile.objective_function(best) > readfile.objective_function(temp):
                 best = temp
     
     return best
+
+
+#def simulated_annealing(solution):

@@ -21,7 +21,7 @@ score = readfile.objective_function(bad)
 
 print("score før localsearch: ",score, " solution: ", bad)
 
-ny = algorithms.random_search(bad)
+ny = algorithms.local_search(bad)
 
 score = readfile.objective_function(ny)
 print("etter: ", score, " solution: ", ny)
