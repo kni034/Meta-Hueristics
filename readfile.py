@@ -104,6 +104,15 @@ def read(filename = 'Call_7_Vehicle_3.txt'):
             node_time_and_cost[temp_key] = temp
 
 
+def gen_dummy_solution():
+    solution = []
+    solution.extend(range(1, num_calls + 1))
+    solution.extend(range(1, num_calls + 1))
+    for _ in range(num_vehicles): 
+        solution.insert(0,0)
+    
+    return solution
+
 
 def gen_random_solution():
 
@@ -167,7 +176,8 @@ def gen_random_solution():
 
 
 def test():
-    print(vehicle_start)
+    print(num_vehicles,)
+    
 
 
 def check_feasibility(solution):

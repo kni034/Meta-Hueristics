@@ -1,6 +1,7 @@
 import readfile
 import random
 from collections import defaultdict
+from math import e
 
 def switch(solution, call1, call2):
     temp = list(solution)
@@ -124,4 +125,39 @@ def local_search(solution):
     return best
 
 
-#def simulated_annealing(solution):
+def simulated_annealing(solution):
+    #p of using opt2
+    p1 = 0.33
+    #p of using opt3
+    p2 = 0.33
+
+    init_temperature = 100
+    temperature = init_temperature
+    cooling = 0.998
+    incumbent = list(solution)
+    best = list(solution)
+
+    for _ in range(10000):
+        rand = random.random()
+        rand2 = random.random()
+        if rand >= 0 and rand <= p1:
+            temp = opt2(incumbent)
+        elif rand > p1 and rand <= p2 + p1:
+            temp = opt3(incumbent)
+        else:
+            temp = insert1(incumbent)
+
+        deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+        p_change = e * -deltaE / temperature
+
+        if readfile.check_feasibility(temp):
+            if deltaE < 0:
+                incumbent = temp
+                if readfile.objective_function(incumbent) < readfile.objective_function(best):
+                    best = list(incumbent)
+            
+            elif rand2 < p_change:
+                incumbent = temp
+        temperature *= cooling
+    
+    return best
