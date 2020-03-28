@@ -99,7 +99,7 @@ def random_search(solution):
             best_solution = current
             iteration = i
     
-    print("iteration: ", i)
+    print("iteration: ", iteration)
     return best_solution
 
 
@@ -127,7 +127,7 @@ def local_search(solution):
                 best = temp
                 iteration = i
 
-    print("iteration: ", i)
+    print("iteration: ", iteration)
     return best
 
 
@@ -168,5 +168,6 @@ def simulated_annealing(solution):
                 incumbent = temp
         temperature *= cooling
     
-    print("Iteration: ",i)
+    print("Iteration: ",iteratrion)
     return best
+
