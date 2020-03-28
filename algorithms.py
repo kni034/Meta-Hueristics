@@ -88,15 +88,18 @@ def insert1(solution):
 
 def random_search(solution):
     best_solution = solution
+    iteration = 0
 
-    for _ in range(10000):
+    for i in range(10000):
         current = readfile.gen_random_solution()
 
         if not readfile.check_feasibility(current): continue
 
         if readfile.objective_function(best_solution) > readfile.objective_function(current):
             best_solution = current
+            iteration = i
     
+    print("iteration: ", i)
     return best_solution
 
 
@@ -105,9 +108,10 @@ def local_search(solution):
     p1 = 0.33
     #p of using opt3
     p2 = 0.33
-    
+    iteration = 0
+
     best = list(solution)
-    for _ in range(10000):
+    for i in range(10000):
         rand = random.random()
         if rand >= 0 and rand <= p1:
             temp = opt2(best)
@@ -121,7 +125,9 @@ def local_search(solution):
         if readfile.check_feasibility(temp):
             if readfile.objective_function(best) > readfile.objective_function(temp):
                 best = temp
-    
+                iteration = i
+
+    print("iteration: ", i)
     return best
 
 
@@ -136,8 +142,9 @@ def simulated_annealing(solution):
     cooling = 0.998
     incumbent = list(solution)
     best = list(solution)
+    iteratrion = 0
 
-    for _ in range(10000):
+    for i in range(10000):
         rand = random.random()
         rand2 = random.random()
         if rand >= 0 and rand <= p1:
@@ -155,9 +162,11 @@ def simulated_annealing(solution):
                 incumbent = temp
                 if readfile.objective_function(incumbent) < readfile.objective_function(best):
                     best = list(incumbent)
+                    iteratrion = i
             
             elif rand2 < p_change:
                 incumbent = temp
         temperature *= cooling
     
+    print("Iteration: ",i)
     return best
