@@ -66,6 +66,7 @@ def car_poss(solution, car_id):
     return possitions
 
 
+
 def insert1(solution):
     best = list(solution)
     ex1 = random.choice(solution)
@@ -139,6 +140,8 @@ def simulated_annealing(solution):
     #p of using opt3
     p2 = 0.33
 
+    print("SimAnn")
+
     init_temperature = 25
     temperature = init_temperature
     cooling = 0.998
@@ -176,27 +179,44 @@ def simulated_annealing(solution):
 #--------------------------------------------------------------------------------------
 #new operators and simulated annealing
 def insert1_new(solution):
-    best = list(solution)
-    ex1 = random.choice(solution)
-    while ex1 == 0: ex1 = random.choice(solution)
+    new = readfile.gen_dummy_solution()
+    calls_list = []
+    calls_list.extend(range(1, readfile.num_calls+1))
+    
+    ex1 = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=1)
 
+    ex11 = ex1[0]
+    ex1 = ex11
+
+    print("ex1: ", ex1)
     temp = list(solution)
 
     temp = [x for x in temp if x != ex1]
+    done = False
+    i=0
+    while not done:
+        i+=1
 
-    car = random.choice(range(1, readfile.num_vehicles + 1))
-    cars_possition = car_poss(temp, car)
+        temp2 = list(temp)
+        print("temp2 før: ", temp2)
+        car = random.choice(readfile.call_to_cars(ex1))
 
-    temp.insert(random.choice(cars_possition), ex1)
-    cars_possition = car_poss(temp, car)
-    temp.insert(random.choice(cars_possition), ex1)
+        cars_possition = car_poss(temp2, car)
+        temp2.insert(random.choice(cars_possition), ex1)
+        cars_possition = car_poss(temp2, car)
+        temp2.insert(random.choice(cars_possition), ex1)
 
-    if readfile.check_feasibility(temp):
-        best = temp
+        print("temp2 etter:", temp2)
 
-    return best
+        if readfile.check_feasibility(temp2):
+            new = temp2
+            done = True
 
-def greedy_insert(solution):
+        if i > 3:
+            done = True
+            new = list(solution)
+        print("tried for car: ", car, " worked? ", readfile.check_feasibility(temp2) )
+    return new
 
 def opt3_new(solution):
     best = list(solution)
@@ -245,9 +265,11 @@ def opt2_new(solution):
 
 def simulated_annealing_new(solution):
     #p of using opt2
-    p1 = 0.33
+    p1 = 0
     #p of using opt3
-    p2 = 0.33
+    p2 = 0
+
+    print("SimAnn NEW")
 
     positive_deltas = []
     init_temperature = int
@@ -256,7 +278,7 @@ def simulated_annealing_new(solution):
     incumbent = list(solution)
     best = list(solution)
 
-    for i in range(10000):
+    for i in range(10):
         rand = random.random()
         rand2 = random.random()
         if rand >= 0 and rand <= p1:
@@ -275,7 +297,7 @@ def simulated_annealing_new(solution):
             if deltaE > 0:
                 positive_deltas.append(deltaE)
         elif i == 101:
-            print(positive_deltas)
+            #print(positive_deltas)
             init_temperature = mean(positive_deltas)
             temperature = init_temperature
             p_change = e * (-deltaE / temperature)

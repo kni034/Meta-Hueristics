@@ -357,9 +357,6 @@ def objective_function(solution):
 
 def weighted_calls(solution):
     weights = [0] * num_calls
-    
-
-
     visited_nodes = []
     car_id = 1
     last_node = vehicle_start[car_id][0]
@@ -409,3 +406,14 @@ def weighted_calls(solution):
                     last_node = calls[call][2]
 
     return weights
+
+def car_to_calls(car_id):
+    return vehicle_calls[car_id]
+
+def call_to_cars(call_id):
+    call_list = []
+    for i,calls in vehicle_calls.items():
+        if call_id in calls:
+            call_list.append(i)
+
+    return call_list
