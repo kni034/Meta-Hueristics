@@ -2,6 +2,8 @@ import readfile
 import random
 from collections import defaultdict
 from math import e
+from statistics import mean
+
 
 def switch(solution, call1, call2):
     temp = list(solution)
@@ -137,14 +139,13 @@ def simulated_annealing(solution):
     #p of using opt3
     p2 = 0.33
 
-    init_temperature = 100
+    init_temperature = 25
     temperature = init_temperature
     cooling = 0.998
     incumbent = list(solution)
     best = list(solution)
-    iteratrion = 0
 
-    for i in range(10000):
+    for _ in range(10000):
         rand = random.random()
         rand2 = random.random()
         if rand >= 0 and rand <= p1:
@@ -155,19 +156,143 @@ def simulated_annealing(solution):
             temp = insert1(incumbent)
 
         deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
-        p_change = e * -deltaE / temperature
+
+        p_change = e * (-deltaE / temperature)
+
 
         if readfile.check_feasibility(temp):
             if deltaE < 0:
                 incumbent = temp
                 if readfile.objective_function(incumbent) < readfile.objective_function(best):
                     best = list(incumbent)
-                    iteratrion = i
             
             elif rand2 < p_change:
                 incumbent = temp
         temperature *= cooling
     
-    print("Iteration: ",iteratrion)
     return best
+
+
+#--------------------------------------------------------------------------------------
+#new operators and simulated annealing
+def insert1_new(solution):
+    best = list(solution)
+    ex1 = random.choice(solution)
+    while ex1 == 0: ex1 = random.choice(solution)
+
+    temp = list(solution)
+
+    temp = [x for x in temp if x != ex1]
+
+    car = random.choice(range(1, readfile.num_vehicles + 1))
+    cars_possition = car_poss(temp, car)
+
+    temp.insert(random.choice(cars_possition), ex1)
+    cars_possition = car_poss(temp, car)
+    temp.insert(random.choice(cars_possition), ex1)
+
+    if readfile.check_feasibility(temp):
+        best = temp
+
+    return best
+
+def greedy_insert(solution):
+
+def opt3_new(solution):
+    best = list(solution)
+    done = False
+    while not done:
+
+        ex1 = random.choice(solution)
+        while ex1 == 0: ex1 = random.choice(solution)
+
+        ex2 = random.choice(solution)
+        while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
+
+        ex3 = random.choice(solution)
+        while ex3 == 0 or ex3 == ex2 or ex3 == ex1: ex3 = random.choice(solution)
+
+        order = [ex1,ex2,ex3]
+        random.shuffle(order)
+
+        temp = switch(solution, order[0], order[1])
+        temp = switch(temp, order[1], order[2])
+
+        if readfile.check_feasibility(temp):
+            best = temp
+            done = True
+
+    return best
+
+def opt2_new(solution):
+    best = list(solution)
+    done = False
+    while not done:
+        ex1 = random.choice(solution)
+        while ex1 == 0: ex1 = random.choice(solution)
+
+        ex2 = random.choice(solution)
+        while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
+        
+        temp = switch(solution, ex1, ex2)
+
+        if readfile.check_feasibility(temp):
+            best = temp
+            done = True
+
+    return best
+
+
+def simulated_annealing_new(solution):
+    #p of using opt2
+    p1 = 0.33
+    #p of using opt3
+    p2 = 0.33
+
+    positive_deltas = []
+    init_temperature = int
+    temperature = int
+    cooling = 0.998
+    incumbent = list(solution)
+    best = list(solution)
+
+    for i in range(10000):
+        rand = random.random()
+        rand2 = random.random()
+        if rand >= 0 and rand <= p1:
+            temp = opt2_new(incumbent)
+        elif rand > p1 and rand <= p2 + p1:
+            temp = opt3_new(incumbent)
+        else:
+            temp = insert1_new(incumbent)
+
+        deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+
+        #print("deltaE: ", deltaE)
+
+        if i <= 100:
+            p_change = 0.8
+            if deltaE > 0:
+                positive_deltas.append(deltaE)
+        elif i == 101:
+            print(positive_deltas)
+            init_temperature = mean(positive_deltas)
+            temperature = init_temperature
+            p_change = e * (-deltaE / temperature)
+        else:
+            p_change = e * (-deltaE / temperature)
+
+        if readfile.check_feasibility(temp):
+            if deltaE < 0:
+                incumbent = temp
+                if readfile.objective_function(incumbent) < readfile.objective_function(best):
+                    best = list(incumbent)
+            
+            elif rand2 < p_change:
+                incumbent = temp
+        if i > 100:
+            temperature *= cooling
+    
+    return best
+
 

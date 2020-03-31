@@ -10,26 +10,27 @@ call80 = 'Call_080_Vehicle_20.txt'
 call130 = 'Call_130_Vehicle_40.txt'
 
 
-
-
 start = dt.datetime.now()
 
 
-readfile.read()
+readfile.read(call80)
+
 
 before = readfile.gen_dummy_solution()
 score = readfile.objective_function(before)
 
 
 print("score før : ",score, " solution: ", before)
+#print("weights: ", readfile.weighted_calls(before))
 
 #------
-etter = algorithms.random_search(before)
+etter = algorithms.simulated_annealing_new(before)
 #------
 
 score = readfile.objective_function(etter)
 
 print("etter: ", score, " solution: ", etter)
+#print("weights: ", sorted(readfile.weighted_calls(etter)))
 
 end = dt.datetime.now()
 total_time = (end - start).total_seconds()
@@ -52,7 +53,7 @@ def results(filename= 'Call_7_Vehicle_3.txt'):
         score_before = readfile.objective_function(before)
 
         #-------
-        after = algorithms.simulated_annealing(before)
+        after = algorithms.simulated_annealing_new(before)
         #-------
 
 

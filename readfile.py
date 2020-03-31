@@ -354,3 +354,58 @@ def objective_function(solution):
     
     
     return score    
+
+def weighted_calls(solution):
+    weights = [0] * num_calls
+    
+
+
+    visited_nodes = []
+    car_id = 1
+    last_node = vehicle_start[car_id][0]
+
+
+    for call in solution:
+
+        #call = 0 means change of car
+        if call == 0:
+            car_id += 1
+            if car_id != num_vehicles +1:
+                last_node = vehicle_start[car_id][0]
+
+        #visiting a node, not changing car
+        else:
+
+            #first time interacting with the call = pickup
+            if call not in visited_nodes:
+                visited_nodes.append(call)
+
+                #not dummy vehicle
+                if car_id != num_vehicles +1:
+
+                    weights[call-1] += travel_times_and_cost[(car_id, last_node, calls[call][1])][1]
+
+                    weights[call-1] += node_time_and_cost[(car_id, call)][1]
+
+                    last_node = calls[call][1]
+                    
+
+
+            #delivery
+            else:
+                
+                #if dummy vehicle, score += cost of not transporting
+                if car_id == num_vehicles +1:
+
+                    weights[call-1] += calls[call][4]
+
+                #if not dummy vehicle, score += cost from last node to this node and 
+                #score += cost of delivery
+                else:
+                    weights[call-1] += travel_times_and_cost[(car_id, last_node, calls[call][2])][1]
+
+                    weights[call-1] += node_time_and_cost[(car_id, call)][3]
+                
+                    last_node = calls[call][2]
+
+    return weights
