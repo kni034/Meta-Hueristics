@@ -243,10 +243,10 @@ def check_feasibility(solution):
                     cars_storage.remove(call)
                     unfinished_calls.remove(call)
                     car_weight -= calls[call][3]
-
+                    
                     #calc time from last node to current node
                     time += travel_times_and_cost[(car_id, last_node, calls[call][2])][0]
-                    
+
                     #check if car is too late
                     if time > calls[call][8]: 
                         ###print("too late for delivery of call: ", call)
@@ -257,7 +257,6 @@ def check_feasibility(solution):
 
                     #add time used to deliver call
                     time += node_time_and_cost[(car_id, call)][2]
-
                     last_node = calls[call][2]
 
 
@@ -277,11 +276,9 @@ def check_feasibility(solution):
                     #car has to wait when it arrives too early for pickup
                     if time < calls[call][5]:
                         time = calls[call][5]
-                    
                     #add time used to pick up call
                     time += node_time_and_cost[(car_id, call)][2]
-
-                    last_node = calls[call][0]
+                    last_node = calls[call][1]
                 
             except:
                 ###print("more than 2 of the same call: ", call)

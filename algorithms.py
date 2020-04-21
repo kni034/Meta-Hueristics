@@ -188,7 +188,6 @@ def insert1_new(solution):
     ex11 = ex1[0]
     ex1 = ex11
 
-    print("ex1: ", ex1)
     temp = list(solution)
 
     temp = [x for x in temp if x != ex1]
@@ -198,7 +197,6 @@ def insert1_new(solution):
         i+=1
 
         temp2 = list(temp)
-        print("temp2 før: ", temp2)
         car = random.choice(readfile.call_to_cars(ex1))
 
         cars_possition = car_poss(temp2, car)
@@ -206,31 +204,29 @@ def insert1_new(solution):
         cars_possition = car_poss(temp2, car)
         temp2.insert(random.choice(cars_possition), ex1)
 
-        print("temp2 etter:", temp2)
-
         if readfile.check_feasibility(temp2):
-            new = temp2
+            new = list(temp2)
             done = True
 
-        if i > 3:
+        if i > 6:
             done = True
             new = list(solution)
-        print("tried for car: ", car, " worked? ", readfile.check_feasibility(temp2) )
     return new
 
 def opt3_new(solution):
-    best = list(solution)
+    new = readfile.gen_dummy_solution()
+    calls_list = []
+    calls_list.extend(range(1, readfile.num_calls+1))
+
+    i=0
     done = False
     while not done:
 
-        ex1 = random.choice(solution)
-        while ex1 == 0: ex1 = random.choice(solution)
-
-        ex2 = random.choice(solution)
-        while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
-
-        ex3 = random.choice(solution)
-        while ex3 == 0 or ex3 == ex2 or ex3 == ex1: ex3 = random.choice(solution)
+        ex = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=3)
+        
+        ex1 = ex[0]
+        ex2 = ex[1]
+        ex3 = ex[2]
 
         order = [ex1,ex2,ex3]
         random.shuffle(order)
@@ -239,35 +235,45 @@ def opt3_new(solution):
         temp = switch(temp, order[1], order[2])
 
         if readfile.check_feasibility(temp):
-            best = temp
+            new = list(temp)
+            done = True
+        if i > 6:
+            new = list(solution)
             done = True
 
-    return best
+    return new
 
 def opt2_new(solution):
-    best = list(solution)
+    new = readfile.gen_dummy_solution()
+    calls_list = []
+    calls_list.extend(range(1, readfile.num_calls+1))
+    
+    i=0
     done = False
     while not done:
-        ex1 = random.choice(solution)
-        while ex1 == 0: ex1 = random.choice(solution)
-
-        ex2 = random.choice(solution)
-        while ex2 == 0 or ex2 == ex1: ex2 = random.choice(solution)
+        ex = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=2)
         
+        ex1 = ex[0]
+        ex2 = ex[1]
+
         temp = switch(solution, ex1, ex2)
 
         if readfile.check_feasibility(temp):
-            best = temp
+            new = list(temp)
+            done = True
+        
+        if i > 6:
+            new = list(solution)
             done = True
 
-    return best
+    return new
 
 
 def simulated_annealing_new(solution):
     #p of using opt2
-    p1 = 0
+    p1 = 0.33
     #p of using opt3
-    p2 = 0
+    p2 = 0.33
 
     print("SimAnn NEW")
 
@@ -278,7 +284,7 @@ def simulated_annealing_new(solution):
     incumbent = list(solution)
     best = list(solution)
 
-    for i in range(10):
+    for i in range(10000):
         rand = random.random()
         rand2 = random.random()
         if rand >= 0 and rand <= p1:
@@ -290,15 +296,18 @@ def simulated_annealing_new(solution):
 
         deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
-        #print("deltaE: ", deltaE)
+        
 
         if i <= 100:
             p_change = 0.8
             if deltaE > 0:
                 positive_deltas.append(deltaE)
         elif i == 101:
-            #print(positive_deltas)
-            init_temperature = mean(positive_deltas)
+            print(positive_deltas)
+            if len(positive_deltas) != 0:
+                init_temperature = mean(positive_deltas)
+            else:
+                init_temperature = 1000
             temperature = init_temperature
             p_change = e * (-deltaE / temperature)
         else:
