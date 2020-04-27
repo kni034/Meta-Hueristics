@@ -283,20 +283,31 @@ def simulated_annealing_new(solution):
     cooling = 0.998
     incumbent = list(solution)
     best = list(solution)
+    op_scores = {"opt2": 0, "opt3": 0, "insert": 0}
 
-    for i in range(10000):
+    for i in range(20000):
         rand = random.random()
         rand2 = random.random()
         if rand >= 0 and rand <= p1:
             temp = opt2_new(incumbent)
+            deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+            op_scores["opt2"] += deltaE
+
         elif rand > p1 and rand <= p2 + p1:
             temp = opt3_new(incumbent)
+            deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+            op_scores["opt3"] += deltaE
+
         else:
             temp = insert1_new(incumbent)
+            deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+            op_scores["insert"] += deltaE
 
-        deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+        if i % 100 == 0:
+            print(op_scores)
+            op_scores = {"opt2": 0, "opt3": 0, "insert": 0}
 
-        
+
 
         if i <= 100:
             p_change = 0.8
