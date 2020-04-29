@@ -10,6 +10,13 @@ call80 = 'Call_080_Vehicle_20.txt'
 call130 = 'Call_130_Vehicle_40.txt'
 
 
+
+#call = filename to run
+call = call130
+
+
+
+
 def results(filename= 'Call_7_Vehicle_3.txt'):
     readfile.read(filename)
     score_sum = 0
@@ -56,7 +63,7 @@ def results(filename= 'Call_7_Vehicle_3.txt'):
 
 
 
-results(call130)
+results(call)
 
 
 

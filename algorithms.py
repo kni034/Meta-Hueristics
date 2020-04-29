@@ -197,10 +197,23 @@ def insert1_new(solution):
         i+=1
 
         temp2 = list(temp)
-        car = random.choice(readfile.call_to_cars(ex1))
+        call_to_cars_results = readfile.call_to_cars(ex1)
+        #car = random.choice(readfile.call_to_cars(ex1))
+        car_weights = readfile.weighted_cars(solution)
+        usable_cars = []
+        usable_cars_weights = []
+        for j in range(len(car_weights)):
+            if j + 1 in call_to_cars_results:
+                usable_cars.append(j + 1)
+                usable_cars_weights.append(car_weights[j])
+
+        car = random.choices(usable_cars, weights=usable_cars_weights, k=1)
+        car1 = car[0]
+        car = car1
 
         cars_possition = car_poss(temp2, car)
         temp2.insert(random.choice(cars_possition), ex1)
+
         cars_possition = car_poss(temp2, car)
         temp2.insert(random.choice(cars_possition), ex1)
 
@@ -211,6 +224,7 @@ def insert1_new(solution):
         if i > 6:
             done = True
             new = list(solution)
+
     return new
 
 def opt3_new(solution):
@@ -223,7 +237,7 @@ def opt3_new(solution):
     while not done:
 
         ex = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=3)
-        
+
         ex1 = ex[0]
         ex2 = ex[1]
         ex3 = ex[2]
@@ -231,7 +245,7 @@ def opt3_new(solution):
         order = [ex1,ex2,ex3]
         random.shuffle(order)
 
-        temp = switch(solution, order[0], order[1])
+        temp = switch(list(solution), order[0], order[1])
         temp = switch(temp, order[1], order[2])
 
         if readfile.check_feasibility(temp):
@@ -252,7 +266,7 @@ def opt2_new(solution):
     done = False
     while not done:
         ex = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=2)
-        
+
         ex1 = ex[0]
         ex2 = ex[1]
 
@@ -262,18 +276,45 @@ def opt2_new(solution):
             new = list(temp)
             done = True
         
-        if i > 6:
+        if i > 10:
             new = list(solution)
             done = True
 
     return new
 
 
+def move1(solution):
+    new = readfile.gen_dummy_solution()
+    
+
+    car = random.choice(range(readfile.num_vehicles - 1)) + 1
+    if len(car_poss(solution,car)) <= 2:
+        return solution
+
+    for _ in range(6):
+        temp = list(solution)
+        car_positions = car_poss(temp, car)
+        ex1 = temp.pop(random.choice(car_positions))
+        new_car_positions = car_poss(temp, car)
+        temp.insert(random.choice(new_car_positions), ex1)
+
+        if temp == solution:
+            continue
+
+        if readfile.check_feasibility(temp):
+            new = temp
+    
+    return new
+
+
+
 def simulated_annealing_new(solution):
     #p of using opt2
-    p1 = 0.33
+    p1 = 0.25
     #p of using opt3
-    p2 = 0.33
+    p2 = 0.25
+    #p of using insert
+    p3 = 0.25
 
     print("SimAnn NEW")
 
@@ -283,29 +324,111 @@ def simulated_annealing_new(solution):
     cooling = 0.998
     incumbent = list(solution)
     best = list(solution)
-    op_scores = {"opt2": 0, "opt3": 0, "insert": 0}
+    op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+    prev_op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+    op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+    all_found_solutions = []
 
-    for i in range(20000):
+    for i in range(10000):
         rand = random.random()
         rand2 = random.random()
+        
         if rand >= 0 and rand <= p1:
             temp = opt2_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
-            op_scores["opt2"] += deltaE
+
+            op_usage["opt2"] += 1
+            if readfile.objective_function(temp) < readfile.objective_function(best):
+                op_scores["opt2"] += 4
+            elif deltaE < 0:
+                op_scores["opt2"] += 2
+            elif temp not in all_found_solutions:
+                op_scores["opt2"] += 1
+                all_found_solutions.append(temp)
+        
 
         elif rand > p1 and rand <= p2 + p1:
             temp = opt3_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
-            op_scores["opt3"] += deltaE
 
-        else:
+            op_usage["opt3"] += 1
+            if readfile.objective_function(temp) < readfile.objective_function(best):
+                op_scores["opt3"] += 4
+            elif deltaE < 0:
+                op_scores["opt3"] += 2
+            elif temp not in all_found_solutions:
+                op_scores["opt3"] += 1
+                all_found_solutions.append(temp)
+
+        elif(rand > p1+ p2 and rand <= p1 + p2 + p3):
             temp = insert1_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
-            op_scores["insert"] += deltaE
 
-        if i % 100 == 0:
-            print(op_scores)
-            op_scores = {"opt2": 0, "opt3": 0, "insert": 0}
+            op_usage["insert"] += 1
+            if readfile.objective_function(temp) < readfile.objective_function(best):
+                op_scores["insert"] += 4
+            elif deltaE < 0:
+                op_scores["insert"] += 2
+            elif temp not in all_found_solutions:
+                op_scores["insert"] += 1
+                all_found_solutions.append(temp)
+
+        else:
+            temp = move1(incumbent)
+            deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
+
+            op_usage["move1"] += 1
+            if readfile.objective_function(temp) < readfile.objective_function(best):
+                op_scores["move1"] += 4
+            elif deltaE < 0:
+                op_scores["move1"] += 2
+            elif temp not in all_found_solutions:
+                op_scores["move1"] += 1
+                all_found_solutions.append(temp)
+        
+        
+
+        if i == 100:
+
+            print("100 rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
+            print("op usage: ", op_usage, " op scores: ", op_scores)
+
+            if op_usage["opt2"] == 0: op_usage["opt2"] = 1
+            if op_usage["opt3"] == 0: op_usage["opt3"] = 1
+            if op_usage["insert"] == 0: op_usage["insert"] = 1
+            if op_usage["move1"] == 0: op_usage["move1"] = 1
+
+
+            print("etter 100 rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
+            print("op usage: ", op_usage, " op scores: ", op_scores)
+
+
+            prev_op_scores = dict(op_scores)
+            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+
+            
+
+        elif i % 100 == 0 and i != 0:
+            print(i," før rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
+            print("op usage: ", op_usage, " op scores: ", op_scores) 
+
+            if op_usage["opt2"] == 0: op_usage["opt2"] = 1
+            if op_usage["opt3"] == 0: op_usage["opt3"] = 1
+            if op_usage["insert"] == 0: op_usage["insert"] = 1
+            if op_usage["move1"] == 0: op_usage["move1"] = 1
+
+            p1 = (0.8 * prev_op_scores["opt2"]) + (0.2 * (op_scores["opt2"] / op_usage["opt2"]))
+            p2 = (0.8 * prev_op_scores["opt3"]) + (0.2 * (op_scores["opt3"] / op_usage["opt3"]))
+            p3 = (0.8 * prev_op_scores["insert"]) + (0.2 * (op_scores["insert"] / op_usage["insert"]))
+
+            print(i," etter rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
+            print("op usage: ", op_usage, " op scores: ", op_scores)
+            
+            prev_op_scores = dict(op_scores)
+            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+
 
 
 
@@ -314,7 +437,7 @@ def simulated_annealing_new(solution):
             if deltaE > 0:
                 positive_deltas.append(deltaE)
         elif i == 101:
-            print(positive_deltas)
+
             if len(positive_deltas) != 0:
                 init_temperature = mean(positive_deltas)
             else:

@@ -404,6 +404,49 @@ def weighted_calls(solution):
 
     return weights
 
+#calculates each vehicles total time usage
+def weighted_cars(solution):
+    weights = [0] * num_vehicles
+    for i in range(num_vehicles):
+        weights[i] += vehicle_start[i + 1][1]
+    car_id = 1
+    visited_nodes = []
+    last_node = vehicle_start[car_id][0]
+
+    for call in solution:
+
+        if call == 0:
+            car_id += 1
+            if car_id != num_vehicles +1:
+                last_node = vehicle_start[car_id][0]
+                continue
+            else:
+                break
+
+        #delivery
+        if call in visited_nodes:
+
+            weights[car_id-1] += node_time_and_cost[(car_id, call)][2]
+            weights[car_id-1] += travel_times_and_cost[(car_id, last_node, calls[call][2])][0]
+            last_node = calls[call][2]
+
+        #pickup
+        else:
+            visited_nodes.append(call)
+            weights[car_id-1] += node_time_and_cost[(car_id, call)][0]
+            weights[car_id-1] += travel_times_and_cost[(car_id, last_node, calls[call][1])][0]
+            last_node = calls[call][1]
+        
+    temp = []
+    for weight in weights:
+        if weight == 0:
+            weight = 1
+        temp.append(1/weight)
+    weights = temp
+
+    return weights
+
+
 def car_to_calls(car_id):
     return vehicle_calls[car_id]
 
