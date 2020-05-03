@@ -16,7 +16,6 @@ call = call130
 
 
 
-
 def results(filename= 'Call_7_Vehicle_3.txt'):
     readfile.read(filename)
     score_sum = 0

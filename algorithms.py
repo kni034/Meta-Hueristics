@@ -54,18 +54,6 @@ def opt3(solution):
 
     return best
 
-def car_poss(solution, car_id):
-    current_car_num = 1
-    possitions = []
-    for i,elem in enumerate(solution):
-        if current_car_num == car_id:
-            possitions.append(i)
-        if elem == 0:
-            current_car_num += 1
-    
-    return possitions
-
-
 
 def insert1(solution):
     best = list(solution)
@@ -178,6 +166,18 @@ def simulated_annealing(solution):
 
 #--------------------------------------------------------------------------------------
 #new operators and simulated annealing
+def car_poss(solution, car_id):
+    current_car_num = 1
+    possitions = []
+    for i,elem in enumerate(solution):
+        if current_car_num == car_id:
+            possitions.append(i)
+        if elem == 0:
+            current_car_num += 1
+    
+    return possitions
+
+
 def insert1_new(solution):
     new = readfile.gen_dummy_solution()
     calls_list = []
@@ -226,6 +226,7 @@ def insert1_new(solution):
             new = list(solution)
 
     return new
+
 
 def opt3_new(solution):
     new = readfile.gen_dummy_solution()
@@ -307,14 +308,34 @@ def move1(solution):
     return new
 
 
+def swap_in_car(solution):
+    new = readfile.gen_dummy_solution()
+    temp = list(solution)
+
+    car = random.choice(range(readfile.num_vehicles - 1)) + 1
+    if len(car_poss(temp,car)) <= 2:
+        return temp
+
+    
+
+    car_posstitions = car_poss(temp, car)
+    for _ in range(10):
+        temp = list(solution)
+        
+        ex1 = random.choice(car_posstitions)
+        ex2 = random.choice(car_posstitions)
+        temp2 = ex1
+
+        temp[ex1] = temp[ex2]
+        temp[ex2] = temp[temp2]
+
+        if readfile.check_feasibility(temp):
+            return temp
+
+    return new
+
 
 def simulated_annealing_new(solution):
-    #p of using opt2
-    p1 = 0.25
-    #p of using opt3
-    p2 = 0.25
-    #p of using insert
-    p3 = 0.25
 
     print("SimAnn NEW")
 
@@ -324,22 +345,31 @@ def simulated_annealing_new(solution):
     cooling = 0.998
     incumbent = list(solution)
     best = list(solution)
-    op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-    prev_op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-    op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
+    op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
+    prev_op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
+    op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
     all_found_solutions = []
 
-    for i in range(10000):
-        rand = random.random()
+    #initial weights
+    op_weights = [1] * 4
+    lookup_list = [0,1,2,3]
+    for i in range(20000):
+
+        op_number_to_op = {0: "opt2", 1:"opt3", 2: "insert", 3: "swap"}
         rand2 = random.random()
         
-        if rand >= 0 and rand <= p1:
+        current_op = random.choices(lookup_list, weights=op_weights, k=1)
+        current_op_temp = current_op[0]
+        current_op = current_op_temp
+        current_op = op_number_to_op[current_op]
+
+        if current_op == "opt2":
             temp = opt2_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
             op_usage["opt2"] += 1
             if readfile.objective_function(temp) < readfile.objective_function(best):
-                op_scores["opt2"] += 4
+                op_scores["opt2"] += 6
             elif deltaE < 0:
                 op_scores["opt2"] += 2
             elif temp not in all_found_solutions:
@@ -347,26 +377,26 @@ def simulated_annealing_new(solution):
                 all_found_solutions.append(temp)
         
 
-        elif rand > p1 and rand <= p2 + p1:
+        elif current_op == "opt3":
             temp = opt3_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
             op_usage["opt3"] += 1
             if readfile.objective_function(temp) < readfile.objective_function(best):
-                op_scores["opt3"] += 4
+                op_scores["opt3"] += 6
             elif deltaE < 0:
                 op_scores["opt3"] += 2
             elif temp not in all_found_solutions:
                 op_scores["opt3"] += 1
                 all_found_solutions.append(temp)
 
-        elif(rand > p1+ p2 and rand <= p1 + p2 + p3):
+        elif current_op == "insert":
             temp = insert1_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
             op_usage["insert"] += 1
             if readfile.objective_function(temp) < readfile.objective_function(best):
-                op_scores["insert"] += 4
+                op_scores["insert"] += 6
             elif deltaE < 0:
                 op_scores["insert"] += 2
             elif temp not in all_found_solutions:
@@ -374,62 +404,55 @@ def simulated_annealing_new(solution):
                 all_found_solutions.append(temp)
 
         else:
-            temp = move1(incumbent)
+            temp = swap_in_car(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
-            op_usage["move1"] += 1
+            op_usage["swap"] += 1
             if readfile.objective_function(temp) < readfile.objective_function(best):
-                op_scores["move1"] += 4
+                op_scores["swap"] += 6
             elif deltaE < 0:
-                op_scores["move1"] += 2
+                op_scores["swap"] += 2
             elif temp not in all_found_solutions:
-                op_scores["move1"] += 1
+                op_scores["swap"] += 1
                 all_found_solutions.append(temp)
         
         
 
         if i == 100:
 
-            print("100 rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
-            print("op usage: ", op_usage, " op scores: ", op_scores)
-
             if op_usage["opt2"] == 0: op_usage["opt2"] = 1
             if op_usage["opt3"] == 0: op_usage["opt3"] = 1
             if op_usage["insert"] == 0: op_usage["insert"] = 1
-            if op_usage["move1"] == 0: op_usage["move1"] = 1
-
-
-            print("etter 100 rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
-            print("op usage: ", op_usage, " op scores: ", op_scores)
-
+            if op_usage["swap"] == 0: op_usage["swap"] = 1
 
             prev_op_scores = dict(op_scores)
-            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-
+            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
+            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
             
 
         elif i % 100 == 0 and i != 0:
-            print(i," før rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
-            print("op usage: ", op_usage, " op scores: ", op_scores) 
+
+            print("op scores: ", op_scores, " op weights: ", op_weights )
 
             if op_usage["opt2"] == 0: op_usage["opt2"] = 1
             if op_usage["opt3"] == 0: op_usage["opt3"] = 1
             if op_usage["insert"] == 0: op_usage["insert"] = 1
-            if op_usage["move1"] == 0: op_usage["move1"] = 1
+            if op_usage["swap"] == 0: op_usage["swap"] = 1
 
-            p1 = (0.8 * prev_op_scores["opt2"]) + (0.2 * (op_scores["opt2"] / op_usage["opt2"]))
-            p2 = (0.8 * prev_op_scores["opt3"]) + (0.2 * (op_scores["opt3"] / op_usage["opt3"]))
-            p3 = (0.8 * prev_op_scores["insert"]) + (0.2 * (op_scores["insert"] / op_usage["insert"]))
+            op_weights[0] = (0.8 * prev_op_scores["opt2"]) + (0.2 * (op_scores["opt2"] / op_usage["opt2"]))
+            op_weights[1] = (0.8 * prev_op_scores["opt3"]) + (0.2 * (op_scores["opt3"] / op_usage["opt3"]))
+            op_weights[2] = (0.8 * prev_op_scores["insert"]) + (0.2 * (op_scores["insert"] / op_usage["insert"]))
+            op_weights[3] = (0.8 * prev_op_scores["swap"]) + (0.2 * (op_scores["swap"] / op_usage["swap"]))
 
-            print(i," etter rand: ", rand, " p1: ", p1, " p2: ", p2, " p3: ", p3, " p4: ", (p1+p2+p3))
-            print("op usage: ", op_usage, " op scores: ", op_scores)
+            if op_weights[0] < 3:op_weights[0] = 3
+            if op_weights[1] < 3:op_weights[1] = 3
+            if op_weights[2] < 3:op_weights[2] = 3
+            if op_weights[3] < 3:op_weights[3] = 3
             
             prev_op_scores = dict(op_scores)
-            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "move1": 0}
-
-
+            op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
+            op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
+        
 
 
         if i <= 100:

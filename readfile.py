@@ -457,3 +457,6 @@ def call_to_cars(call_id):
             call_list.append(i)
 
     return call_list
+
+#def k_regret(solution, k, car):
+
