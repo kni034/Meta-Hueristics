@@ -60,9 +60,46 @@ def results(filename= 'Call_7_Vehicle_3.txt'):
     print(f"Running time: {average_time:.2f}")
     print(f"Best solution: {best}")
 
+#results(call)
 
 
-results(call)
+calls = ['Call_7_Vehicle_3.txt','Call_18_Vehicle_5.txt','Call_035_Vehicle_07.txt']
 
 
+def exam(calls):
 
+    for i in range(len(calls)):
+
+        score = 0
+        readfile.read(calls[i])
+
+        start = dt.datetime.now()
+
+
+        before = readfile.gen_dummy_solution()
+        score_before = readfile.objective_function(before)
+
+        #-------
+        after = algorithms.simulated_annealing_new(before)
+        #-------
+
+
+        score = readfile.objective_function(after)
+
+        end = dt.datetime.now()
+        time = (end - start).total_seconds()
+
+        
+        time += time
+
+        improvement = 100 * ((score_before - score)/score_before)
+
+        print("Stats for ", calls[i])
+        print(f"Objective: {score:.2f}")
+        print(f"Improvement%: {improvement:.2f}")
+        print(f"Running time: {time:.2f}")
+        print(f"Best solution: {after}")
+        print("------------------------------------------------------------")
+
+
+exam(calls)

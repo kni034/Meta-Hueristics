@@ -319,7 +319,7 @@ def swap_in_car(solution):
     
 
     car_posstitions = car_poss(temp, car)
-    for _ in range(10):
+    for _ in range(100):
         temp = list(solution)
         
         ex1 = random.choice(car_posstitions)
@@ -432,7 +432,7 @@ def simulated_annealing_new(solution):
 
         elif i % 100 == 0 and i != 0:
 
-            print("op scores: ", op_scores, " op weights: ", op_weights )
+            #print(i, " op scores: ", op_scores, " op weights: ", op_weights )
 
             if op_usage["opt2"] == 0: op_usage["opt2"] = 1
             if op_usage["opt3"] == 0: op_usage["opt3"] = 1
