@@ -9,14 +9,15 @@ call35 = 'Call_035_Vehicle_07.txt'
 call80 = 'Call_080_Vehicle_20.txt'
 call130 = 'Call_130_Vehicle_40.txt'
 
-
+calls = [call7, call18,call35,call80,call130]
+call_max_time = [10, 20, 50, 120, 400]
 
 #call = filename to run
 call = call130
 
 
 
-def results(filename= 'Call_7_Vehicle_3.txt'):
+def results(filename = 'Call_7_Vehicle_3.txt'):
     readfile.read(filename)
     score_sum = 0
     before = readfile.gen_dummy_solution()
@@ -27,14 +28,14 @@ def results(filename= 'Call_7_Vehicle_3.txt'):
 
     iterations = 1
 
-    for _ in range(iterations):
+    for i in range(iterations):
         start = dt.datetime.now()
         before = readfile.gen_dummy_solution()
         score_before = readfile.objective_function(before)
 
-        #-------
-        after = algorithms.simulated_annealing_new(before)
-        #-------
+        #----------
+        after = algorithms.simulated_annealing_new(before, call_max_time[4])
+        #----------
 
 
         after_score = readfile.objective_function(after)
@@ -60,10 +61,10 @@ def results(filename= 'Call_7_Vehicle_3.txt'):
     print(f"Running time: {average_time:.2f}")
     print(f"Best solution: {best}")
 
-#results(call)
+results(call)
 
 
-calls = ['Call_7_Vehicle_3.txt','Call_18_Vehicle_5.txt','Call_035_Vehicle_07.txt']
+
 
 
 def exam(calls):
@@ -80,7 +81,7 @@ def exam(calls):
         score_before = readfile.objective_function(before)
 
         #-------
-        after = algorithms.simulated_annealing_new(before)
+        after = algorithms.simulated_annealing_new(before, call_max_time[i])
         #-------
 
 
@@ -98,8 +99,8 @@ def exam(calls):
         print(f"Objective: {score:.2f}")
         print(f"Improvement%: {improvement:.2f}")
         print(f"Running time: {time:.2f}")
-        print(f"Best solution: {after}")
+        print(f"Solution: {after}")
         print("------------------------------------------------------------")
 
 
-exam(calls)
+#exam(calls)

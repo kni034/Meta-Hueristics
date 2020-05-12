@@ -3,6 +3,7 @@ import random
 from collections import defaultdict
 from math import e
 from statistics import mean
+import datetime as dt
 
 
 def switch(solution, call1, call2):
@@ -89,7 +90,7 @@ def random_search(solution):
         if readfile.objective_function(best_solution) > readfile.objective_function(current):
             best_solution = current
             iteration = i
-    
+
     print("iteration: ", iteration)
     return best_solution
 
@@ -112,7 +113,7 @@ def local_search(solution):
             temp = insert1(best)
 
         #print("temp: ", temp, " feasible?: ", readfile.check_feasibility(temp), " temp score: ", readfile.objective_function(temp), "best: ", best)
-        
+
         if readfile.check_feasibility(temp):
             if readfile.objective_function(best) > readfile.objective_function(temp):
                 best = temp
@@ -156,11 +157,11 @@ def simulated_annealing(solution):
                 incumbent = temp
                 if readfile.objective_function(incumbent) < readfile.objective_function(best):
                     best = list(incumbent)
-            
+
             elif rand2 < p_change:
                 incumbent = temp
         temperature *= cooling
-    
+
     return best
 
 
@@ -174,7 +175,7 @@ def car_poss(solution, car_id):
             possitions.append(i)
         if elem == 0:
             current_car_num += 1
-    
+
     return possitions
 
 
@@ -182,7 +183,7 @@ def insert1_new(solution):
     new = readfile.gen_dummy_solution()
     calls_list = []
     calls_list.extend(range(1, readfile.num_calls+1))
-    
+
     ex1 = random.choices(calls_list, weights=readfile.weighted_calls(solution), k=1)
 
     ex11 = ex1[0]
@@ -221,7 +222,7 @@ def insert1_new(solution):
             new = list(temp2)
             done = True
 
-        if i > 6:
+        if i > 5:
             done = True
             new = list(solution)
 
@@ -252,7 +253,7 @@ def opt3_new(solution):
         if readfile.check_feasibility(temp):
             new = list(temp)
             done = True
-        if i > 6:
+        if i > 10:
             new = list(solution)
             done = True
 
@@ -262,7 +263,7 @@ def opt2_new(solution):
     new = readfile.gen_dummy_solution()
     calls_list = []
     calls_list.extend(range(1, readfile.num_calls+1))
-    
+
     i=0
     done = False
     while not done:
@@ -276,7 +277,7 @@ def opt2_new(solution):
         if readfile.check_feasibility(temp):
             new = list(temp)
             done = True
-        
+
         if i > 10:
             new = list(solution)
             done = True
@@ -286,7 +287,7 @@ def opt2_new(solution):
 
 def move1(solution):
     new = readfile.gen_dummy_solution()
-    
+
 
     car = random.choice(range(readfile.num_vehicles - 1)) + 1
     if len(car_poss(solution,car)) <= 2:
@@ -304,38 +305,45 @@ def move1(solution):
 
         if readfile.check_feasibility(temp):
             new = temp
-    
+
     return new
 
 
 def swap_in_car(solution):
     new = readfile.gen_dummy_solution()
     temp = list(solution)
+    best = list(new)
 
     car = random.choice(range(readfile.num_vehicles - 1)) + 1
-    if len(car_poss(temp,car)) <= 2:
+    car_posstitions = car_poss(temp, car)
+    if len(car_posstitions) <= 2:
         return temp
 
-    
 
-    car_posstitions = car_poss(temp, car)
     for _ in range(100):
         temp = list(solution)
-        
-        ex1 = random.choice(car_posstitions)
-        ex2 = random.choice(car_posstitions)
-        temp2 = ex1
 
-        temp[ex1] = temp[ex2]
-        temp[ex2] = temp[temp2]
+        try:
+            ex1 = random.choice(car_posstitions)
+            ex2 = ex1 + 1
 
-        if readfile.check_feasibility(temp):
-            return temp
+            temp2 = ex1
 
-    return new
+            temp[ex1] = temp[ex2]
+            temp[ex2] = temp[temp2]
+
+            if readfile.check_feasibility(temp):
+                if readfile.objective_function(temp) < readfile.objective_function(best):
+                    best = temp
+
+        except:
+            print("feilet")
+
+    return best
 
 
-def simulated_annealing_new(solution):
+def simulated_annealing_new(solution, max_time):
+    function_start = dt.datetime.now()
 
     print("SimAnn NEW")
 
@@ -353,6 +361,17 @@ def simulated_annealing_new(solution):
     #initial weights
     op_weights = [1] * 4
     lookup_list = [0,1,2,3]
+
+    time_opt2 = 0
+    time_opt3 = 0
+    time_insert = 0
+    time_swap = 0
+    score_op2 = 0
+    score_opt3 = 0
+    score_insert = 0
+    score_swap = 0
+
+
     for i in range(20000):
 
         op_number_to_op = {0: "opt2", 1:"opt3", 2: "insert", 3: "swap"}
@@ -364,6 +383,8 @@ def simulated_annealing_new(solution):
         current_op = op_number_to_op[current_op]
 
         if current_op == "opt2":
+            start = dt.datetime.now()
+
             temp = opt2_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
@@ -375,9 +396,13 @@ def simulated_annealing_new(solution):
             elif temp not in all_found_solutions:
                 op_scores["opt2"] += 1
                 all_found_solutions.append(temp)
-        
+            
+            end = dt.datetime.now()
+            time_opt2 += (end - start).total_seconds()
 
         elif current_op == "opt3":
+            start = dt.datetime.now()
+
             temp = opt3_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
@@ -390,7 +415,12 @@ def simulated_annealing_new(solution):
                 op_scores["opt3"] += 1
                 all_found_solutions.append(temp)
 
+            end = dt.datetime.now()
+            time_opt3 += (end - start).total_seconds()
+
         elif current_op == "insert":
+            start = dt.datetime.now()
+
             temp = insert1_new(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
@@ -402,8 +432,13 @@ def simulated_annealing_new(solution):
             elif temp not in all_found_solutions:
                 op_scores["insert"] += 1
                 all_found_solutions.append(temp)
+            
+            end = dt.datetime.now()
+            time_insert += (end - start).total_seconds()
 
         else:
+            start = dt.datetime.now()
+
             temp = swap_in_car(incumbent)
             deltaE = readfile.objective_function(temp) - readfile.objective_function(incumbent)
 
@@ -415,6 +450,8 @@ def simulated_annealing_new(solution):
             elif temp not in all_found_solutions:
                 op_scores["swap"] += 1
                 all_found_solutions.append(temp)
+            end = dt.datetime.now()
+            time_swap += (end - start).total_seconds()
         
         
 
@@ -426,6 +463,12 @@ def simulated_annealing_new(solution):
             if op_usage["swap"] == 0: op_usage["swap"] = 1
 
             prev_op_scores = dict(op_scores)
+
+            score_op2 += op_scores["opt2"]
+            score_opt3 += op_scores["opt3"]
+            score_insert += op_scores["insert"]
+            score_swap += op_scores["swap"]
+
             op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
             op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
             
@@ -448,11 +491,16 @@ def simulated_annealing_new(solution):
             if op_weights[1] < 3:op_weights[1] = 3
             if op_weights[2] < 3:op_weights[2] = 3
             if op_weights[3] < 3:op_weights[3] = 3
+
+            score_op2 += op_scores["opt2"]
+            score_opt3 += op_scores["opt3"]
+            score_insert += op_scores["insert"]
+            score_swap += op_scores["swap"]
             
             prev_op_scores = dict(op_scores)
             op_scores = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
             op_usage = {"opt2": 0, "opt3": 0, "insert": 0, "swap": 0}
-        
+
 
 
         if i <= 100:
@@ -475,12 +523,18 @@ def simulated_annealing_new(solution):
                 incumbent = temp
                 if readfile.objective_function(incumbent) < readfile.objective_function(best):
                     best = list(incumbent)
-            
+
             elif rand2 < p_change:
                 incumbent = temp
         if i > 100:
             temperature *= cooling
-    
+
+        current_time = dt.datetime.now()
+        time = (current_time - function_start).total_seconds()
+        if time >= max_time:
+            return best
+
+    print("time opt2: ", time_opt2, " time opt3: ", time_opt3, " time insert: ", time_insert, " time swap: ", time_swap)
+    print("scoreopt2: ", score_op2, " scoreopt3: ", score_opt3, " scoreinsert: ", score_insert, "scoreswap: ", score_swap)
+    print("value: ", time_opt2/score_op2, " ", time_opt3/score_opt3, " ", time_insert/score_insert, " ", time_swap/score_swap)
     return best
-
-
