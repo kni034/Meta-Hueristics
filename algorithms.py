@@ -313,10 +313,13 @@ def swap_in_car(solution):
     new = readfile.gen_dummy_solution()
     temp = list(solution)
     best = list(new)
-
-    car = random.choice(range(readfile.num_vehicles - 1)) + 1
+    car = random.choice(range(readfile.num_vehicles)) + 1
     car_posstitions = car_poss(temp, car)
-    if len(car_posstitions) <= 2:
+
+    better_number = 0
+
+    car_posstitions.pop()
+    if len(car_posstitions) < 4:
         return temp
 
 
@@ -325,16 +328,19 @@ def swap_in_car(solution):
 
         try:
             ex1 = random.choice(car_posstitions)
-            ex2 = ex1 + 1
+            ex2 = random.choice(car_posstitions)
 
-            temp2 = ex1
-
-            temp[ex1] = temp[ex2]
-            temp[ex2] = temp[temp2]
+            temp[ex1], temp[ex2] = temp[ex2], temp[ex1]
 
             if readfile.check_feasibility(temp):
+
                 if readfile.objective_function(temp) < readfile.objective_function(best):
+
                     best = temp
+                    better_number += 1
+
+                    if better_number >= 1:
+                        break
 
         except:
             print("feilet")
@@ -372,7 +378,7 @@ def simulated_annealing_new(solution, max_time):
     score_swap = 0
 
 
-    for i in range(20000):
+    for i in range(40000):
 
         op_number_to_op = {0: "opt2", 1:"opt3", 2: "insert", 3: "swap"}
         rand2 = random.random()
@@ -487,10 +493,15 @@ def simulated_annealing_new(solution, max_time):
             op_weights[2] = (0.8 * prev_op_scores["insert"]) + (0.2 * (op_scores["insert"] / op_usage["insert"]))
             op_weights[3] = (0.8 * prev_op_scores["swap"]) + (0.2 * (op_scores["swap"] / op_usage["swap"]))
 
-            if op_weights[0] < 3:op_weights[0] = 3
-            if op_weights[1] < 3:op_weights[1] = 3
-            if op_weights[2] < 3:op_weights[2] = 3
-            if op_weights[3] < 3:op_weights[3] = 3
+            weights_sum = sum(op_weights)
+            min_weight = weights_sum * 0.1
+            if min_weight < 0.01:
+                min_weight = 0.01
+
+            if op_weights[0] < min_weight: op_weights[0] = min_weight
+            if op_weights[1] < min_weight: op_weights[1] = min_weight
+            if op_weights[2] < min_weight: op_weights[2] = min_weight
+            if op_weights[3] < min_weight: op_weights[3] = min_weight
 
             score_op2 += op_scores["opt2"]
             score_opt3 += op_scores["opt3"]
@@ -534,7 +545,7 @@ def simulated_annealing_new(solution, max_time):
         if time >= max_time:
             return best
 
-    print("time opt2: ", time_opt2, " time opt3: ", time_opt3, " time insert: ", time_insert, " time swap: ", time_swap)
-    print("scoreopt2: ", score_op2, " scoreopt3: ", score_opt3, " scoreinsert: ", score_insert, "scoreswap: ", score_swap)
-    print("value: ", time_opt2/score_op2, " ", time_opt3/score_opt3, " ", time_insert/score_insert, " ", time_swap/score_swap)
+    #print("time opt2: ", time_opt2, " time opt3: ", time_opt3, " time insert: ", time_insert, " time swap: ", time_swap)
+    #print("scoreopt2: ", score_op2, " scoreopt3: ", score_opt3, " scoreinsert: ", score_insert, "scoreswap: ", score_swap)
+    #print("value: ", time_opt2/score_op2, " ", time_opt3/score_opt3, " ", time_insert/score_insert, " ", time_swap/score_swap)
     return best
